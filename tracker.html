@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report a Cleanup Issue</title>
+    <!-- Leaflet CSS for the Map -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #map { height: 300px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #ddd; }
+        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        .nav-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚀 Report New Issue</h2>
+    <p>Click on the map to pinpoint the location of the waste.</p>
+    
+    <!-- 1. Map Integration -->
+    <div id="map"></div>
+
+    <form id="reportForm">
+        <!-- 2. Geo-tagged Location Data -->
+        <input type="text" id="coords" placeholder="Latitude, Longitude" readonly required>
+
+        <!-- 3. Photo Upload -->
+        <label for="imageUpload">Upload Photo (AI Analysis Ready):</label>
+        <input type="file" id="imageUpload" accept="image/*" required>
+
+        <!-- 4. Waste Type -->
+        <select id="wasteType">
+            <option value="trash">Overflowing Bin</option>
+            <option value="illegal">Illegal Dumping</option>
+            <option value="plastic">Plastic Waste</option>
+            <option value="other">Other</option>
+        </select>
+
+        <button type="button" onclick="submitReport()">Submit Report (+50 XP)</button>
+    </form>
+
+    <a href="dashboard.html" class="nav-link">← Back to Dashboard</a>
+</div>
+
+<!-- Leaflet JS for Map Logic -->
+<script src="https://unpkg.com"></script>
+<script>
+    // Initialize the map (centered on a general area)
+    var map = L.map('map').setView([51.505, -0.09], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    var marker;
+
+    // Click event to pinpoint location
+    map.on('click', function(e) {
+        if (marker) { map.removeLayer(marker); }
+        marker = L.marker(e.latlng).addTo(map);
+        document.getElementById('coords').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+    });
+
+    function submitReport() {
+        const coords = document.getElementById('coords').value;
+        if (!coords) {
+            alert("Please click on the map to set a location!");
+            return;
+        }
+        
+        // Simulating the AI Identification & Submission
+        alert("Report Submitted! \nLocation: " + coords + "\nAI Status: Analyzing photo for waste type...");
+        window.location.href = "dashboard.html";
+    }
+</script>
+
+</body>
+</html>
