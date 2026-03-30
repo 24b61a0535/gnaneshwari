@@ -1,92 +1,118 @@
 <!DOCTYPE html>
 <html lang="en">
-<link rel="stylesheet" href="style.css">
+<head>
     <meta charset="UTF-8">
-    <title>Report a Cleanup Issue</title>
-    <!-- Leaflet CSS for the Map -->
+    <title>AI Waste Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 1. External AI Scripts -->
+    <script src="https://cdn.jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net"></script>
+    <!-- 2. Map Styles -->
     <link rel="stylesheet" href="https://unpkg.com" />
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #map { height: 300px; border-radius: 8px; margin-bottom: 15px; border: 2px solid #ddd; }
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        .nav-link { display: block; text-align: center; margin-top: 15px; color: #666; text-decoration: none; }
+        #map { height: 250px; border-radius: 8px; margin-bottom: 15px; }
+        #preview { width: 100%; max-height: 200px; object-fit: cover; display: none; border-radius: 8px; margin: 10px 0; border: 2px solid #28a745; }
+        .ai-box { background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px dashed #28a745; margin-bottom: 15px; text-align: center; }
     </style>
 </head>
-<nav>
-    <div class="logo">🌿 CleanupHub</div>
-    <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="tracker.html">Report</a>
-        <a href="dashboard.html">Map</a>
-        <a href="leaderboard.html">Ranking</a>
-        <a href="impact.html">My Impact</a>
-        <a href="education.html">Learn</a>
-    </div>
-</nav>
+<body>
 
 <div class="container">
-    <h2>🚀 Report New Issue</h2>
-    <p>Click on the map to pinpoint the location of the waste.</p>
+    <h2>🚀 AI-Powered Report</h2>
     
-    <!-- 1. Map Integration -->
+    <!-- Geo-tagged Map Section -->
     <div id="map"></div>
+    <input type="text" id="coords" placeholder="Click map for location" readonly>
 
+    <!-- AI Waste Scanner Section -->
+    <div class="ai-box">
+        <label for="imageUpload"><b>Upload Photo for AI Identification:</b></label>
+        <input type="file" id="imageUpload" accept="image/*" onchange="runAI(event)">
+        
+        <img id="preview" src="" alt="Image Preview">
+        <p id="ai-status">Status: Waiting for AI model... 🧠</p>
+    </div>
+
+    <!-- Reporting Form -->
     <form id="reportForm">
-        <!-- 2. Geo-tagged Location Data -->
-        <input type="text" id="coords" placeholder="Latitude, Longitude" readonly required>
-
-        <!-- 3. Photo Upload -->
-        <label for="imageUpload">Upload Photo (AI Analysis Ready):</label>
-        <input type="file" id="imageUpload" accept="image/*" required>
-
-        <!-- 4. Waste Type -->
         <select id="wasteType">
-            <option value="trash">Overflowing Bin</option>
-            <option value="illegal">Illegal Dumping</option>
-            <option value="plastic">Plastic Waste</option>
-            <option value="other">Other</option>
+            <option value="">-- AI will suggest type --</option>
+            <option value="plastic">Plastic / Bottle</option>
+            <option value="metal">Metal / Can</option>
+            <option value="paper">Paper / Cardboard</option>
+            <option value="other">General Waste</option>
         </select>
-
-        <button type="button" onclick="submitReport()">Submit Report (+50 XP)</button>
+        <button type="button" onclick="submitFinalReport()">Submit & Earn +50 XP</button>
     </form>
 
-    <a href="dashboard.html" class="nav-link">← Back to Dashboard</a>
+    <a href="dashboard.html" style="display:block; text-align:center; margin-top:15px;">← Back to Dashboard</a>
 </div>
 
-<!-- Leaflet JS for Map Logic -->
+<!-- Map Logic -->
 <script src="https://unpkg.com"></script>
 <script>
-    // Initialize the map (centered on a general area)
+    // Initialize Map
     var map = L.map('map').setView([51.505, -0.09], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
-
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     var marker;
-
-    // Click event to pinpoint location
     map.on('click', function(e) {
-        if (marker) { map.removeLayer(marker); }
+        if (marker) map.removeLayer(marker);
         marker = L.marker(e.latlng).addTo(map);
         document.getElementById('coords').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
     });
 
-    function submitReport() {
-        const coords = document.getElementById('coords').value;
-        if (!coords) {
-            alert("Please click on the map to set a location!");
-            return;
-        }
-        
-        // Simulating the AI Identification & Submission
-        alert("Report Submitted! \nLocation: " + coords + "\nAI Status: Analyzing photo for waste type...");
+    // --- AI LOGIC START ---
+    let model;
+
+    // Load AI Model on startup
+    async function loadAI() {
+        console.log("Loading AI...");
+        document.getElementById('ai-status').innerText = "Loading AI Brain... 🧠";
+        model = await mobilenet.load();
+        console.log("AI Model Loaded Successfully!");
+        document.getElementById('ai-status').innerText = "AI Ready! Upload a photo.";
+    }
+    loadAI();
+
+    // Run AI when image is uploaded
+    async function runAI(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('preview');
+        const status = document.getElementById('ai-status');
+
+        if (!file) return;
+
+        // Show Preview
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+            
+            status.innerText = "AI is identifying waste... 🔍";
+
+            // AI Classification
+            setTimeout(async () => {
+                const predictions = await model.classify(preview);
+                const result = predictions[0].className;
+                const confidence = (predictions[0].probability * 100).toFixed(1);
+                
+                status.innerHTML = `<b>AI Result:</b> ${result} (${confidence}%)<br><span style="color:green;">+10 Bonus XP Applied!</span>`;
+                
+                // Auto-select type (Simple logic)
+                if (result.toLowerCase().includes('bottle')) document.getElementById('wasteType').value = 'plastic';
+            }, 500);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function submitFinalReport() {
+        alert("Report Sent! Your location and AI scan data are saved.");
         window.location.href = "dashboard.html";
     }
 </script>
 
 </body>
 </html>
+
+
+    
