@@ -1,11 +1,11 @@
-/* General App Styles */
+/* --- YOUR ORIGINAL STYLES --- */
 body {
     font-family: 'Segoe UI', Roboto, sans-serif;
     background-color: #f4f7f6;
     margin: 0;
     padding: 20px;
     color: #333;
-}
+}  
 
 /* Navigation Bar */
 nav {
@@ -15,6 +15,7 @@ nav {
     margin-bottom: 20px;
     display: flex;
     justify-content: space-between;
+    align-items: center;
 }
 
 nav a {
@@ -70,7 +71,58 @@ button {
     width: 100%;
     cursor: pointer;
     font-size: 16px;
+    transition: 0.3s;
 }
 
 button:hover { background-color: #218838; }
 
+/* --- NEW AI & UI ADDITIONS --- */
+
+/* Container for all content */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Input styling */
+input[type="text"], select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+/* AI Pulsing Animation */
+.pulse {
+    display: inline-block;
+    animation: pulse-animation 1.5s infinite;
+}
+
+@keyframes pulse-animation {
+    0% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.02); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+/* AI Status Box */
+#ai-status {
+    padding: 15px;
+    background: #ffffff;
+    border: 1px dashed #28a745;
+    border-radius: 8px;
+    margin-top: 10px;
+    font-size: 14px;
+    min-height: 40px;
+}
+
+/* AI Preview Image */
+#preview {
+    width: 100%;
+    max-height: 250px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border: 2px solid #28a745;
+}
