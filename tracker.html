@@ -1,118 +1,81 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>AI Waste Tracker</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- 1. External AI Scripts -->
-    <script src="https://cdn.jsdelivr.net"></script>
-    <script src="https://cdn.jsdelivr.net"></script>
-    <!-- 2. Map Styles -->
-    <link rel="stylesheet" href="https://unpkg.com" />
-    <style>
-        #map { height: 250px; border-radius: 8px; margin-bottom: 15px; }
-        #preview { width: 100%; max-height: 200px; object-fit: cover; display: none; border-radius: 8px; margin: 10px 0; border: 2px solid #28a745; }
-        .ai-box { background: #e8f5e9; padding: 15px; border-radius: 8px; border: 1px dashed #28a745; margin-bottom: 15px; text-align: center; }
-    </style>
-</head>
-<body>
+// --- INITIALIZE MAP ---
+var map = L.map('map').setView([17.3850, 78.4867], 13); // Default to a city center
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+var marker;
+map.on('click', function(e) {
+    if (marker) map.removeLayer(marker);
+    marker = L.marker(e.latlng).addTo(map);
+    document.getElementById('coords').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+});
 
-<div class="container">
-    <h2>🚀 AI-Powered Report</h2>
-    
-    <!-- Geo-tagged Map Section -->
-    <div id="map"></div>
-    <input type="text" id="coords" placeholder="Click map for location" readonly>
+// --- AI & XP LOGIC ---
+let model;
+let currentXP = parseInt(localStorage.getItem('userXP')) || 0;
 
-    <!-- AI Waste Scanner Section -->
-    <div class="ai-box">
-        <label for="imageUpload"><b>Upload Photo for AI Identification:</b></label>
-        <input type="file" id="imageUpload" accept="image/*" onchange="runAI(event)">
+// 1. Load AI Brain
+async function loadAI() {
+    const status = document.getElementById('ai-status');
+    status.innerHTML = "Initializing AI Brain... 🧠";
+    model = await mobilenet.load();
+    status.innerHTML = "✅ AI Ready! Upload a photo.";
+}
+loadAI();
+
+// 2. Run AI with Animation
+async function runAI(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById('preview');
+    const status = document.getElementById('ai-status');
+
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        preview.src = e.target.result;
+        preview.style.display = "block";
         
-        <img id="preview" src="" alt="Image Preview">
-        <p id="ai-status">Status: Waiting for AI model... 🧠</p>
-    </div>
+        // Add "Thinking" Animation
+        status.innerHTML = "<span class='pulse'>AI is analyzing pixels... 🔍</span>";
+        status.style.color = "#ffa500";
 
-    <!-- Reporting Form -->
-    <form id="reportForm">
-        <select id="wasteType">
-            <option value="">-- AI will suggest type --</option>
-            <option value="plastic">Plastic / Bottle</option>
-            <option value="metal">Metal / Can</option>
-            <option value="paper">Paper / Cardboard</option>
-            <option value="other">General Waste</option>
-        </select>
-        <button type="button" onclick="submitFinalReport()">Submit & Earn +50 XP</button>
-    </form>
-
-    <a href="dashboard.html" style="display:block; text-align:center; margin-top:15px;">← Back to Dashboard</a>
-</div>
-
-<!-- Map Logic -->
-<script src="https://unpkg.com"></script>
-<script>
-    // Initialize Map
-    var map = L.map('map').setView([51.505, -0.09], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    var marker;
-    map.on('click', function(e) {
-        if (marker) map.removeLayer(marker);
-        marker = L.marker(e.latlng).addTo(map);
-        document.getElementById('coords').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
-    });
-
-    // --- AI LOGIC START ---
-    let model;
-
-    // Load AI Model on startup
-    async function loadAI() {
-        console.log("Loading AI...");
-        document.getElementById('ai-status').innerText = "Loading AI Brain... 🧠";
-        model = await mobilenet.load();
-        console.log("AI Model Loaded Successfully!");
-        document.getElementById('ai-status').innerText = "AI Ready! Upload a photo.";
-    }
-    loadAI();
-
-    // Run AI when image is uploaded
-    async function runAI(event) {
-        const file = event.target.files[0];
-        const preview = document.getElementById('preview');
-        const status = document.getElementById('ai-status');
-
-        if (!file) return;
-
-        // Show Preview
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            preview.src = e.target.result;
-            preview.style.display = "block";
+        // AI Classification Delay (to show animation)
+        setTimeout(async () => {
+            const predictions = await model.classify(preview);
+            const topResult = predictions[0].className;
+            const confidence = (predictions[0].probability * 100).toFixed(1);
             
-            status.innerText = "AI is identifying waste... 🔍";
+            // Success Feedback
+            status.innerHTML = `<b>AI Result:</b> ${topResult} (${confidence}%)<br>
+                                <span style="color:#28a745; font-weight:bold;">🎉 AI Verified! +10 Bonus XP Added.</span>`;
+            status.style.color = "#333";
+            
+            // Add Bonus XP for AI Scan
+            updateXP(10);
 
-            // AI Classification
-            setTimeout(async () => {
-                const predictions = await model.classify(preview);
-                const result = predictions[0].className;
-                const confidence = (predictions[0].probability * 100).toFixed(1);
-                
-                status.innerHTML = `<b>AI Result:</b> ${result} (${confidence}%)<br><span style="color:green;">+10 Bonus XP Applied!</span>`;
-                
-                // Auto-select type (Simple logic)
-                if (result.toLowerCase().includes('bottle')) document.getElementById('wasteType').value = 'plastic';
-            }, 500);
-        };
-        reader.readAsDataURL(file);
+            // Auto-select Waste Type logic
+            if (topResult.toLowerCase().includes('bottle') || topResult.toLowerCase().includes('plastic')) {
+                document.getElementById('wasteType').value = 'plastic';
+            }
+        }, 1500);
+    };
+    reader.readAsDataURL(file);
+}
+
+// 3. Save XP to LocalStorage
+function updateXP(amount) {
+    currentXP += amount;
+    localStorage.setItem('userXP', currentXP);
+    console.log("Total XP: " + currentXP);
+}
+
+// 4. Final Submission
+function submitFinalReport() {
+    if (!document.getElementById('coords').value) {
+        alert("Please pinpoint the location on the map first!");
+        return;
     }
-
-    function submitFinalReport() {
-        alert("Report Sent! Your location and AI scan data are saved.");
-        window.location.href = "dashboard.html";
-    }
-</script>
-
-</body>
-</html>
-
-
     
+    updateXP(50); // Standard 50 XP for reporting
+    alert("🚀 Report Submitted Successfully!\nTotal XP Earned: " + currentXP);
+    window.location.href = "impact.html"; // Go see your progress!
+}
