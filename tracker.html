@@ -1,81 +1,132 @@
-// --- INITIALIZE MAP ---
-var map = L.map('map').setView([17.3850, 78.4867], 13); // Default to a city center
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-var marker;
-map.on('click', function(e) {
-    if (marker) map.removeLayer(marker);
-    marker = L.marker(e.latlng).addTo(map);
-    document.getElementById('coords').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
-});
-
-// --- AI & XP LOGIC ---
-let model;
-let currentXP = parseInt(localStorage.getItem('userXP')) || 0;
-
-// 1. Load AI Brain
-async function loadAI() {
-    const status = document.getElementById('ai-status');
-    status.innerHTML = "Initializing AI Brain... 🧠";
-    model = await mobilenet.load();
-    status.innerHTML = "✅ AI Ready! Upload a photo.";
-}
-loadAI();
-
-// 2. Run AI with Animation
-async function runAI(event) {
-    const file = event.target.files[0];
-    const preview = document.getElementById('preview');
-    const status = document.getElementById('ai-status');
-
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = async function(e) {
-        preview.src = e.target.result;
-        preview.style.display = "block";
-        
-        // Add "Thinking" Animation
-        status.innerHTML = "<span class='pulse'>AI is analyzing pixels... 🔍</span>";
-        status.style.color = "#ffa500";
-
-        // AI Classification Delay (to show animation)
-        setTimeout(async () => {
-            const predictions = await model.classify(preview);
-            const topResult = predictions[0].className;
-            const confidence = (predictions[0].probability * 100).toFixed(1);
-            
-            // Success Feedback
-            status.innerHTML = `<b>AI Result:</b> ${topResult} (${confidence}%)<br>
-                                <span style="color:#28a745; font-weight:bold;">🎉 AI Verified! +10 Bonus XP Added.</span>`;
-            status.style.color = "#333";
-            
-            // Add Bonus XP for AI Scan
-            updateXP(10);
-
-            // Auto-select Waste Type logic
-            if (topResult.toLowerCase().includes('bottle') || topResult.toLowerCase().includes('plastic')) {
-                document.getElementById('wasteType').value = 'plastic';
-            }
-        }, 1500);
-    };
-    reader.readAsDataURL(file);
-}
-
-// 3. Save XP to LocalStorage
-function updateXP(amount) {
-    currentXP += amount;
-    localStorage.setItem('userXP', currentXP);
-    console.log("Total XP: " + currentXP);
-}
-
-// 4. Final Submission
-function submitFinalReport() {
-    if (!document.getElementById('coords').value) {
-        alert("Please pinpoint the location on the map first!");
-        return;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Waste - AI Tracker</title>
+    <link rel="stylesheet" href="style.css">
     
-    updateXP(50); // Standard 50 XP for reporting
-    alert("🚀 Report Submitted Successfully!\nTotal XP Earned: " + currentXP);
-    window.location.href = "impact.html"; // Go see your progress!
-}
+    <!-- 1. AI Libraries -->
+    <script src="https://cdn.jsdelivr.net"></script>
+    <script src="https://cdn.jsdelivr.net"></script>
+    
+    <!-- 2. Map Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com" />
+    <script src="https://unpkg.com"></script>
+</head>
+<body>
+
+<nav>
+    <div class="logo">🌿 CleanupHub</div>
+    <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="impact.html">My Impact</a>
+    </div>
+</nav>
+
+<div class="container">
+    <h2>🚀 Report New Cleanup Issue</h2>
+    <p>Pinpoint the location and upload a photo for AI verification.</p>
+
+    <!-- STEP 1: GEO-TAGGED MAP -->
+    <div id="map"></div>
+    <input type="text" id="coords" placeholder="Latitude, Longitude (Click Map)" readonly>
+
+    <!-- STEP 2: PHOTO UPLOAD & AI SCAN -->
+    <div class="stat-card" style="border: 2px dashed #28a745; margin-top: 20px;">
+        <label for="imageUpload" class="button" style="display: block; background: #e8f5e9; color: #28a745; border: 1px solid #28a745;">
+            📸 Click to Take or Upload Photo
+        </label>
+        <input type="file" id="imageUpload" accept="image/*" onchange="runAIScan(event)" style="display: none;">
+        
+        <!-- Image Preview Area -->
+        <img id="preview" src="" alt="Preview" style="display:none; width:100%; border-radius:10px; margin-top:15px; border: 2px solid #28a745;">
+        
+        <div id="ai-status">Status: Waiting for AI Brain... 🧠</div>
+    </div>
+
+    <!-- STEP 3: WASTE DETAILS -->
+    <form id="reportForm" style="margin-top: 20px;">
+        <label>Waste Category:</label>
+        <select id="wasteType">
+            <option value="other">Detecting...</option>
+            <option value="plastic">Plastic / Bottle</option>
+            <option value="metal">Metal / Can</option>
+            <option value="paper">Paper / Cardboard</option>
+            <option value="illegal">Illegal Dumping</option>
+        </select>
+
+        <button type="button" onclick="submitReport()" id="submitBtn">Submit Report (+50 XP)</button>
+    </form>
+</div>
+
+<script>
+    // --- MAP LOGIC ---
+    var map = L.map('map').setView([17.3850, 78.4867], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    var marker;
+
+    map.on('click', function(e) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker(e.latlng).addTo(map);
+        document.getElementById('coords').value = e.latlng.lat.toFixed(5) + ", " + e.latlng.lng.toFixed(5);
+    });
+
+    // --- AI LOGIC ---
+    let model;
+
+    async function loadAI() {
+        const status = document.getElementById('ai-status');
+        model = await mobilenet.load();
+        status.innerHTML = "✅ AI Ready! Upload a photo.";
+    }
+    loadAI();
+
+    async function runAIScan(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('preview');
+        const status = document.getElementById('ai-status');
+
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            preview.src = e.target.result;
+            preview.style.display = "block";
+            status.innerHTML = "<span class='pulse'>AI Analyzing pixels... 🔍</span>";
+
+            setTimeout(async () => {
+                const predictions = await model.classify(preview);
+                const topResult = predictions[0].className;
+                const score = (predictions[0].probability * 100).toFixed(1);
+
+                status.innerHTML = `<b>Detected:</b> ${topResult} (${score}%) <br> <span style="color:green;">+10 AI Bonus XP earned!</span>`;
+                
+                // Logic to auto-select dropdown
+                if (topResult.toLowerCase().includes('bottle')) {
+                    document.getElementById('wasteType').value = 'plastic';
+                }
+            }, 1000);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // --- SUBMISSION LOGIC ---
+    function submitReport() {
+        const coords = document.getElementById('coords').value;
+        if (!coords) {
+            alert("Please click the map to set a location!");
+            return;
+        }
+        
+        // Save XP to LocalStorage
+        let xp = parseInt(localStorage.getItem('userXP')) || 0;
+        localStorage.setItem('userXP', xp + 60); // 50 for report + 10 for AI scan
+
+        alert("🚀 Success! Report saved and 60 XP added to your profile.");
+        window.location.href = "impact.html";
+    }
+</script>
+
+</body>
+</html>
