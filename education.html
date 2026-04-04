@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <title>Recycle Right - Learning Center</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Adding some basic styles for the AI section */
+        .ai-verify-card {
+            background: #f0fdf4;
+            border: 2px dashed #22c55e;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        #preview {
+            max-width: 200px;
+            display: none;
+            margin: 10px auto;
+            border-radius: 8px;
+        }
+        .status-loading { color: #888; font-style: italic; }
+        .status-success { color: #166534; font-weight: bold; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,9 +32,22 @@
             <h3>🔍 How to Recycle Right</h3>
             <ul>
                 <li><b>Plastic:</b> Wash out food containers before recycling.</li>
-                <li><b>Paper:</b> Keep it dry! Greasy pizza boxes go in the bin, not recycling.</li>
+                <li><b>Paper:</b> Keep it dry! Greasy pizza boxes go in the bin.</li>
                 <li><b>Glass:</b> Remove metal caps and lids.</li>
             </ul>
+        </section>
+
+        <section class="ai-verify-card">
+            <h3>🤖 AI Recycle Verification</h3>
+            <p>Upload a photo of your item to verify if it's recyclable!</p>
+            
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            <button onclick="document.getElementById('imageInput').click()" class="button">📸 Take Photo / Upload</button>
+            
+            <div id="resultArea">
+                <img id="preview" src="" alt="Image Preview">
+                <p id="aiStatus"></p>
+            </div>
         </section>
 
         <section class="badge-section">
@@ -23,7 +55,30 @@
             <p>Recycling a single aluminium can saves enough energy to run a laptop for 3 hours!</p>
         </section>
         
-        <a href="tracker.html" class="button" style="text-decoration:none; display:block; text-align:center;">Apply what you learned - Report Waste</a>
+        <a href="tracker.html" class="button" style="text-decoration:none; display:block; text-align:center;">Report Waste</a>
     </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const aiStatus = document.getElementById('aiStatus');
+        const preview = document.getElementById('preview');
+
+        imageInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                // Show preview
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+                
+                // Simulate AI Processing
+                aiStatus.innerHTML = '<span class="status-loading">AI is analyzing item...</span>';
+                
+                setTimeout(() => {
+                    // Logic: In a real app, you'd send 'file' to an API here
+                    aiStatus.innerHTML = '<span class="status-success">✅ Verified! This appears to be a recyclable Plastic (PET). +10 Points!</span>';
+                }, 2000);
+            }
+        });
+    </script>
 </body>
 </html>
