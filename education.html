@@ -2,32 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recycle Right - Learning Center</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Adding some basic styles for the AI section */
-        .ai-verify-card {
-            background: #f0fdf4;
-            border: 2px dashed #22c55e;
+        .location-card {
+            background: #eff6ff;
+            border: 2px solid #3b82f6;
             padding: 20px;
             border-radius: 12px;
             margin: 20px 0;
             text-align: center;
         }
-        #preview {
-            max-width: 200px;
-            display: none;
-            margin: 10px auto;
-            border-radius: 8px;
+        .coordinates {
+            font-family: monospace;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 10px;
+            border: 1px solid #d1d5db;
         }
-        .status-loading { color: #888; font-style: italic; }
-        .status-success { color: #166534; font-weight: bold; }
+        .btn-location {
+            background-color: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-location:hover { background-color: #2563eb; }
+        .error-text { color: #dc2626; font-size: 0.9rem; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📚 Education Center</h1>
         
+        <section class="location-card">
+            <h3>📍 Live Waste Location</h3>
+            <p>Click below to tag the exact coordinates of the garbage.</p>
+            
+            <button class="btn-location" onclick="getLocation()">🛰️ Get My Live Location</button>
+            
+            <div id="locationDisplay" style="display:none;">
+                <div class="coordinates">
+                    <b>Lat:</b> <span id="lat">--</span> | 
+                    <b>Lon:</b> <span id="lon">--</span>
+                </div>
+                <p id="locationStatus" style="font-size: 0.8rem; color: #6b7280; margin-top: 5px;"></p>
+            </div>
+            <p id="errorMessage" class="error-text"></p>
+        </section>
+
         <section class="stat-card" style="text-align:left;">
             <h3>🔍 How to Recycle Right</h3>
             <ul>
@@ -37,48 +65,62 @@
             </ul>
         </section>
 
-        <section class="ai-verify-card">
-            <h3>🤖 AI Recycle Verification</h3>
-            <p>Upload a photo of your item to verify if it's recyclable!</p>
-            
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            <button onclick="document.getElementById('imageInput').click()" class="button">📸 Take Photo / Upload</button>
-            
-            <div id="resultArea">
-                <img id="preview" src="" alt="Image Preview">
-                <p id="aiStatus"></p>
-            </div>
-        </section>
-
         <section class="badge-section">
             <h3>💡 Did You Know?</h3>
             <p>Recycling a single aluminium can saves enough energy to run a laptop for 3 hours!</p>
         </section>
         
-        <a href="tracker.html" class="button" style="text-decoration:none; display:block; text-align:center;">Report Waste</a>
+        <a href="tracker.html" class="button" style="text-decoration:none; display:block; text-align:center;">Apply what you learned - Report Waste</a>
     </div>
 
     <script>
-        const imageInput = document.getElementById('imageInput');
-        const aiStatus = document.getElementById('aiStatus');
-        const preview = document.getElementById('preview');
+        function getLocation() {
+            const latDisplay = document.getElementById('lat');
+            const lonDisplay = document.getElementById('lon');
+            const status = document.getElementById('locationStatus');
+            const errorArea = document.getElementById('errorMessage');
+            const displayDiv = document.getElementById('locationDisplay');
 
-        imageInput.addEventListener('change', function() {
-            const file = this.files[0];
-            if (file) {
-                // Show preview
-                preview.src = URL.createObjectURL(file);
-                preview.style.display = 'block';
-                
-                // Simulate AI Processing
-                aiStatus.innerHTML = '<span class="status-loading">AI is analyzing item...</span>';
-                
-                setTimeout(() => {
-                    // Logic: In a real app, you'd send 'file' to an API here
-                    aiStatus.innerHTML = '<span class="status-success">✅ Verified! This appears to be a recyclable Plastic (PET). +10 Points!</span>';
-                }, 2000);
+            // Reset messages
+            errorArea.innerHTML = "";
+            
+            if (navigator.geolocation) {
+                status.innerHTML = "Fetching GPS signal...";
+                displayDiv.style.display = "block";
+
+                // watchPosition provides "live" updates if the user moves
+                navigator.geolocation.watchPosition(
+                    (position) => {
+                        latDisplay.innerText = position.coords.latitude.toFixed(6);
+                        lonDisplay.innerText = position.coords.longitude.toFixed(6);
+                        status.innerHTML = "Live Tracking Active ✅";
+                    },
+                    (error) => {
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                errorArea.innerHTML = "User denied the request for Geolocation.";
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                errorArea.innerHTML = "Location information is unavailable.";
+                                break;
+                            case error.TIMEOUT:
+                                errorArea.innerHTML = "The request to get user location timed out.";
+                                break;
+                            default:
+                                errorArea.innerHTML = "An unknown error occurred.";
+                                break;
+                        }
+                    },
+                    {
+                        enableHighAccuracy: true, // Uses GPS if available
+                        timeout: 5000,
+                        maximumAge: 0
+                    }
+                );
+            } else {
+                errorArea.innerHTML = "Geolocation is not supported by this browser.";
             }
-        });
+        }
     </script>
 </body>
 </html>
