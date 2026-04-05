@@ -15,12 +15,14 @@
                 <i class="fas fa-recycle text-green-400"></i> EcoReport
             </div>
             <nav class="space-y-4">
-                <a href="#" class="flex items-center gap-3 p-3 bg-green-700 rounded-lg"><i class="fas fa-th-large w-5"></i> Dashboard</a>
-                <a href="#" class="flex items-center gap-3 p-3 hover:bg-green-700 rounded-lg transition"><i class="fas fa-plus-circle w-5"></i> New Report</a>
+                <a href="dashboard.html" class="flex items-center gap-3 p-3 bg-green-700 rounded-lg"><i class="fas fa-th-large w-5"></i> Dashboard</a>
+                <a href="index.html#report-form" class="flex items-center gap-3 p-3 hover:bg-green-700 rounded-lg transition"><i class="fas fa-plus-circle w-5"></i> New Report</a>
                 <a href="#" class="flex items-center gap-3 p-3 hover:bg-green-700 rounded-lg transition"><i class="fas fa-map-marked-alt w-5"></i> Local Map</a>
                 <a href="#" class="flex items-center gap-3 p-3 hover:bg-green-700 rounded-lg transition"><i class="fas fa-user-circle w-5"></i> Profile</a>
                 <div class="pt-10">
-                    <a href="index.html" class="flex items-center gap-3 p-3 text-green-300 hover:text-white transition"><i class="fas fa-sign-out-alt w-5"></i> Logout</a>
+                    <a href="index.html" class="flex items-center gap-3 p-3 text-green-300 hover:text-white transition">
+                        <i class="fas fa-sign-out-alt w-5"></i> Logout
+                    </a>
                 </div>
             </nav>
         </aside>
@@ -31,23 +33,28 @@
                     <h1 class="text-3xl font-bold text-gray-800">Welcome back, John!</h1>
                     <p class="text-gray-500 font-medium">Springfield North Neighborhood</p>
                 </div>
-                <button class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 transition">
-                    + Report New Garbage
-                </button>
+                <div class="flex gap-3">
+                    <button onclick="clearAllReports()" class="bg-red-100 text-red-600 px-4 py-3 rounded-xl font-bold hover:bg-red-200 transition">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button onclick="window.location.href='index.html#report-form'" class="bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700 transition">
+                        + Report New Garbage
+                    </button>
+                </div>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                     <p class="text-gray-500 text-sm font-semibold uppercase">Total Reports</p>
-                    <h3 class="text-3xl font-bold text-gray-800">12</h3>
+                    <h3 id="stat-total" class="text-3xl font-bold text-gray-800">0</h3>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                     <p class="text-gray-500 text-sm font-semibold uppercase">Resolved</p>
-                    <h3 class="text-3xl font-bold text-green-600">8</h3>
+                    <h3 id="stat-resolved" class="text-3xl font-bold text-green-600">0</h3>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
                     <p class="text-gray-500 text-sm font-semibold uppercase">Pending</p>
-                    <h3 class="text-3xl font-bold text-orange-500">4</h3>
+                    <h3 id="stat-pending" class="text-3xl font-bold text-orange-500">0</h3>
                 </div>
             </div>
 
@@ -67,46 +74,36 @@
                                 <th class="px-6 py-4">Action</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            <tr>
-                                <td class="px-6 py-4 font-medium">#REP-882</td>
-                                <td class="px-6 py-4 text-gray-600">Overflowing Public Bin</td>
-                                <td class="px-6 py-4 text-gray-600">Oct 24, 2026</td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold">Pending</span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <button class="text-gray-400 hover:text-green-600 transition"><i class="fas fa-eye"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium">#REP-879</td>
-                                <td class="px-6 py-4 text-gray-600">Illegal Dumping Site</td>
-                                <td class="px-6 py-4 text-gray-600">Oct 20, 2026</td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold">In Progress</span>
-                                </td>
-                                <td class="px-6 py-4 text-gray-600">
-                                    <button class="text-gray-400 hover:text-green-600 transition"><i class="fas fa-eye"></i></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="px-6 py-4 font-medium">#REP-865</td>
-                                <td class="px-6 py-4 text-gray-600">Hazardous Waste</td>
-                                <td class="px-6 py-4 text-gray-600">Oct 12, 2026</td>
-                                <td class="px-6 py-4">
-                                    <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold">Resolved</span>
-                                </td>
-                                <td class="px-6 py-4 text-gray-600">
-                                    <button class="text-gray-400 hover:text-green-600 transition"><i class="fas fa-eye"></i></button>
-                                </td>
-                            </tr>
-                        </tbody>
+                        <tbody id="reports-table-body" class="divide-y divide-gray-100">
+                            </tbody>
                     </table>
                 </div>
             </div>
         </main>
     </div>
 
+    <script src="app.js"></script>
+    <script>
+        // Additional function for testing: Clears all saved data
+        function clearAllReports() {
+            if(confirm("Are you sure you want to clear all reports?")) {
+                localStorage.removeItem('ecoReports');
+                location.reload();
+            }
+        }
+
+        // Logic to update the Stats numbers based on localStorage data
+        document.addEventListener('DOMContentLoaded', () => {
+            const reports = JSON.parse(localStorage.getItem('ecoReports')) || [];
+            
+            const total = reports.length;
+            const resolved = reports.filter(r => r.status === 'Resolved').length;
+            const pending = reports.filter(r => r.status === 'Pending').length;
+
+            document.getElementById('stat-total').innerText = total;
+            document.getElementById('stat-resolved').innerText = resolved;
+            document.getElementById('stat-pending').innerText = pending;
+        });
+    </script>
 </body>
 </html>
