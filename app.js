@@ -46,37 +46,62 @@ document.addEventListener('DOMContentLoaded', () => {
         reportForm.addEventListener('submit', (e) => {
             e.preventDefault();
 
-            // Capture Data
-            const newReport = {
-                id: "REP-" + Math.floor(Math.random() * 9000 + 1000),
-                category: reportForm.category.value,
-                description: reportForm.description.value,
-                image: preview.src !== "#" ? preview.src : null,
-                status: "Pending",
-                date: new Date().toLocaleDateString('en-GB'), // DD/MM/YYYY
-                timestamp: new Date().getTime()
-            };
-
-            // Save to Browser Storage (Local Database)
-            saveReport(newReport);
-
-            // Visual Feedback
             const submitBtn = document.getElementById('submit-btn');
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
             submitBtn.disabled = true;
 
-            setTimeout(() => {
-                alert("✅ Report successfully submitted to the community!");
-                reportForm.reset();
-                preview.classList.add('hidden');
-                placeholder.classList.remove('hidden');
-                removeBtn.classList.add('hidden');
-                submitBtn.innerHTML = 'Submit Report to Community';
-                submitBtn.disabled = false;
-                
-                // Optional: Redirect to dashboard to see the report
-                // window.location.href = 'dashboard.html';
-            }, 1500);
+            // NEW: Get coordinates before saving
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        finalizeSubmission(lat, lng);
+                    },
+                    (error) => {
+                        console.error("Location error:", error);
+                        // Fallback to center of Hyderabad if location is denied
+                        finalizeSubmission(17.3850, 78.4867);
+                    }
+                );
+            } else {
+                // Fallback for older browsers
+                finalizeSubmission(17.3850, 78.4867);
+            }
+
+            function finalizeSubmission(lat, lng) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+                // Capture Data with Latitude and Longitude
+                const newReport = {
+                    id: "REP-" + Math.floor(Math.random() * 9000 + 1000),
+                    category: reportForm.category.value,
+                    description: reportForm.description.value,
+                    image: preview.src !== "#" ? preview.src : null,
+                    status: "Pending",
+                    lat: lat, // ADDED: Latitude
+                    lng: lng, // ADDED: Longitude
+                    date: new Date().toLocaleDateString('en-GB'), // DD/MM/YYYY
+                    timestamp: new Date().getTime()
+                };
+
+                // Save to Browser Storage
+                saveReport(newReport);
+
+                setTimeout(() => {
+                    alert("✅ Report successfully submitted with location!");
+                    reportForm.reset();
+                    preview.classList.add('hidden');
+                    placeholder.classList.remove('hidden');
+                    removeBtn.classList.add('hidden');
+                    submitBtn.innerHTML = 'Submit Report to Community';
+                    submitBtn.disabled = false;
+                    
+                    if (window.location.pathname.includes('index.html')) {
+                        window.location.href = 'dashboard.html';
+                    }
+                }, 1000);
+            }
         });
     }
 
@@ -91,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function saveReport(report) {
     let reports = JSON.parse(localStorage.getItem('ecoReports')) || [];
-    reports.unshift(report); // Add new report to the top of the list
+    reports.unshift(report);
     localStorage.setItem('ecoReports', JSON.stringify(reports));
 }
 
@@ -113,7 +138,10 @@ function renderDashboard() {
             <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                     ${report.image ? `<img src="${report.image}" class="w-10 h-10 rounded-lg object-cover shadow-sm">` : `<div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400"><i class="fas fa-image"></i></div>`}
-                    <span class="text-gray-700 font-medium">${report.category}</span>
+                    <div>
+                        <div class="text-gray-700 font-medium">${report.category}</div>
+                        <div class="text-xs text-gray-400">${report.lat.toFixed(4)}, ${report.lng.toFixed(4)}</div>
+                    </div>
                 </div>
             </td>
             <td class="px-6 py-4 text-gray-500 text-sm">${report.date}</td>
@@ -131,9 +159,6 @@ function renderDashboard() {
     `).join('');
 }
 
-/**
- * Helper to style status badges
- */
 function getStatusStyle(status) {
     switch (status) {
         case 'Pending': return 'bg-orange-100 text-orange-600';
