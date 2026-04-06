@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scanner | EcoReport</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/dist/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet"></script>
+
+    <style>
+        .loader {
+            border-top-color: #10b981;
+            animation: spinner 1.5s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <nav class="bg-white border-b p-4 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <a href="dashboard.html" class="text-slate-600 hover:text-green-600 font-bold flex items-center gap-2">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <div class="flex items-center gap-2 text-green-700 font-bold">
+                <i class="fas fa-robot"></i> Eco-AI
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-xl mx-auto px-6 py-12">
+        <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 text-center">
+            <h1 class="text-3xl font-extrabold text-slate-800 mb-2">Smart Waste Scan</h1>
+            <p class="text-slate-500 mb-8 font-medium">Let AI identify the waste type for you.</p>
+
+            <div id="drop-area" class="border-4 border-dashed border-slate-100 rounded-3xl p-8 hover:border-green-400 hover:bg-green-50 transition-all cursor-pointer group relative">
+                <input type="file" id="file-input" accept="image/*" class="hidden">
+                
+                <div id="upload-ui">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-camera text-3xl text-green-600"></i>
+                    </div>
+                    <p class="text-slate-600 font-bold">Click to Upload Image</p>
+                    <p class="text-slate-400 text-xs mt-2">Supports JPG, PNG</p>
+                </div>
+
+                <img id="image-preview" class="hidden w-full h-64 object-cover rounded-2xl shadow-md">
+            </div>
+
+            <div class="mt-10 space-y-4">
+                <button id
