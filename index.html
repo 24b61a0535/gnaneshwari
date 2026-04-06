@@ -15,9 +15,12 @@
             width: 100%;
             object-fit: cover;
         }
+        .scroll-smooth {
+            scroll-behavior: smooth;
+        }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body class="bg-gray-50 text-gray-800 scroll-smooth">
 
     <nav class="bg-white shadow-sm sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,17 +32,29 @@
                 <div class="hidden md:flex space-x-8 font-medium">
                     <a href="#" class="text-green-600">Home</a>
                     <a href="#about" class="hover:text-green-600 transition">How it Works</a>
-                    <a href="#report-form" class="hover:text-green-600 transition">Reports</a>
+                    <a href="dashboard.html" class="hover:text-green-600 transition">Incident Map</a>
                 </div>
-                <button onclick="window.location.href='login.html'" class="bg-green-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-green-700 transition shadow-md">
-                    Resident Login
-                </button>
+                <div class="flex items-center gap-4">
+                    <a href="scanner.html" class="hidden sm:flex items-center gap-2 text-green-700 font-bold text-sm bg-green-50 px-4 py-2 rounded-full border border-green-200 hover:bg-green-100 transition">
+                        <i class="fas fa-robot"></i> AI Scan
+                    </a>
+                    <button onclick="window.location.href='login.html'" class="bg-green-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:bg-green-700 transition shadow-md">
+                        Resident Login
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
     <header class="gradient-bg text-white py-20 px-4">
         <div class="max-w-5xl mx-auto text-center">
+            <div class="inline-flex items-center gap-2 bg-white/20 px-4 py-1 rounded-full text-xs font-bold mb-6 backdrop-blur-md">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                LIVE IN HYDERABAD
+            </div>
             <h1 class="text-4xl md:text-6xl font-extrabold mb-6">Clean Streets, <br>Connected Communities.</h1>
             <p class="text-lg md:text-xl mb-10 text-green-50 text-balance">
                 The digital bridge between concerned citizens and local waste management. 
@@ -49,8 +64,11 @@
                 <a href="#report-form" class="bg-white text-green-700 px-8 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition shadow-xl flex items-center justify-center gap-2">
                     <i class="fas fa-camera"></i> Report an Issue
                 </a>
-                <a href="#" class="bg-green-800 bg-opacity-30 border border-green-400 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-opacity-40 transition flex items-center justify-center gap-2">
+                <a href="dashboard.html" class="bg-green-800 bg-opacity-30 border border-green-400 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-opacity-40 transition flex items-center justify-center gap-2">
                     <i class="fas fa-map-marker-alt"></i> View Incident Map
+                </a>
+                <a href="scanner.html" class="sm:hidden bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                    <i class="fas fa-robot"></i> Smart AI Scan
                 </a>
             </div>
         </div>
@@ -58,30 +76,33 @@
 
     <section class="max-w-6xl mx-auto -mt-10 px-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-white p-6 rounded-2xl shadow-lg text-center">
-                <p class="text-3xl font-bold text-green-600">1,240</p>
+            <div class="bg-white p-6 rounded-2xl shadow-lg text-center border-b-4 border-green-500">
+                <p id="resolved-count" class="text-3xl font-bold text-green-600">1,240</p>
                 <p class="text-gray-500 font-medium">Reports Resolved</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-lg text-center">
-                <p class="text-3xl font-bold text-green-600">15</p>
+            <div class="bg-white p-6 rounded-2xl shadow-lg text-center border-b-4 border-blue-500">
+                <p class="text-3xl font-bold text-blue-600">15</p>
                 <p class="text-gray-500 font-medium">Active Neighborhoods</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-lg text-center">
-                <p class="text-3xl font-bold text-green-600">4.2 Tons</p>
+            <div class="bg-white p-6 rounded-2xl shadow-lg text-center border-b-4 border-orange-500">
+                <p class="text-3xl font-bold text-orange-600">4.2 Tons</p>
                 <p class="text-gray-500 font-medium">Waste Diverted</p>
             </div>
         </div>
     </section>
 
     <section id="report-form" class="max-w-4xl mx-auto py-20 px-4">
-        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-gray-100">
             <div class="md:w-1/3 bg-gray-900 text-white p-8 flex flex-col justify-center">
+                <div class="bg-green-500/20 w-12 h-12 rounded-lg flex items-center justify-center mb-6">
+                    <i class="fas fa-bullhorn text-green-500 text-xl"></i>
+                </div>
                 <h2 class="text-2xl font-bold mb-4">Quick Report</h2>
                 <p class="text-gray-400 text-sm mb-6">Take a clear photo of the waste. Your GPS coordinates will be used to alert the nearest sanitation crew.</p>
                 <ul class="space-y-4 text-sm">
-                    <li class="flex items-center gap-3"><i class="fas fa-check text-green-500"></i> Instant Notifications</li>
-                    <li class="flex items-center gap-3"><i class="fas fa-check text-green-500"></i> Privacy Protected</li>
-                    <li class="flex items-center gap-3"><i class="fas fa-check text-green-500"></i> Cleanup Tracking</li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> Instant Notifications</li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> Privacy Protected</li>
+                    <li class="flex items-center gap-3"><i class="fas fa-check-circle text-green-500"></i> Cleanup Tracking</li>
                 </ul>
             </div>
             
@@ -89,38 +110,40 @@
                 <form id="garbage-report-form" class="space-y-5">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Category</label>
-                        <select name="category" required class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500">
+                        <select name="category" id="category-select" required class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500 appearance-none">
                             <option value="Overflowing Public Bin">Overflowing Public Bin</option>
                             <option value="Illegal Dumping Site">Illegal Dumping Site</option>
                             <option value="Hazardous Waste">Hazardous Waste</option>
                             <option value="Dead Animal Removal">Dead Animal Removal</option>
+                            <option value="Plastic/General Waste">Plastic/General Waste</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Location Photo</label>
-                        <div id="drop-area" class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-green-500 transition cursor-pointer overflow-hidden">
+                        <div id="drop-area" class="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-green-500 transition cursor-pointer overflow-hidden bg-gray-50">
                             <input type="file" id="file-input" name="garbage-photo" accept="image/*" class="hidden">
                             
                             <div id="upload-placeholder">
-                                <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
-                                <p class="text-sm text-gray-500">Click to capture or upload</p>
+                                <i class="fas fa-camera text-3xl text-gray-400 mb-2"></i>
+                                <p class="text-sm font-bold text-gray-600">Tap to Capture Image</p>
+                                <p class="text-xs text-gray-400">or click to upload from gallery</p>
                             </div>
 
-                            <img id="image-preview" src="#" alt="Preview" class="hidden rounded-lg">
+                            <img id="image-preview" src="#" alt="Preview" class="hidden rounded-lg shadow-md">
                             
-                            <button type="button" id="remove-img" class="hidden absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-lg z-10">
+                            <button type="button" id="remove-img" class="hidden absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-xs shadow-lg z-10">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Description (Optional)</label>
-                        <textarea name="description" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500" placeholder="Provide details like landmarks..."></textarea>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Description & Details</label>
+                        <textarea name="description" id="description-area" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 outline-none focus:ring-2 focus:ring-green-500" placeholder="Provide details like landmarks or waste type..."></textarea>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 shadow-lg transition">
+                    <button type="submit" id="submit-btn" class="w-full bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 shadow-lg transition transform active:scale-95">
                         Submit Report to Community
                     </button>
                 </form>
@@ -136,16 +159,47 @@
             </div>
             <p class="text-sm mb-6">Digital Platform for Community Based Garbage Reporting</p>
             <div class="flex justify-center space-x-6 mb-8 text-xl">
-                <a href="#" class="hover:text-white"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="hover:text-white"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="hover:text-white"><i class="fab fa-github"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="hover:text-white transition"><i class="fab fa-github"></i></a>
             </div>
             <div class="border-t border-gray-800 pt-8 text-xs uppercase tracking-widest">
-                &copy; 2026 EcoReport Project. All Rights Reserved.
+                &copy; 2026 EcoReport Project | Built for a Greener Hyderabad
             </div>
         </div>
     </footer>
 
     <script src="app.js"></script>
+    <script>
+        // AI AUTO-FILL LOGIC
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const wasteType = urlParams.get('wasteType');
+            
+            if (wasteType) {
+                const descBox = document.getElementById('description-area');
+                const catSelect = document.getElementById('category-select');
+                
+                // Prefill the description
+                descBox.value = `AI Analysis: This appears to be ${wasteType}. `;
+                
+                // Try to smart-match the category
+                if(wasteType.toLowerCase().includes('bottle') || wasteType.toLowerCase().includes('plastic')) {
+                    catSelect.value = "Plastic/General Waste";
+                } else if(wasteType.toLowerCase().includes('container') || wasteType.toLowerCase().includes('trash')) {
+                    catSelect.value = "Overflowing Public Bin";
+                }
+                
+                // Visual highlight
+                descBox.classList.add('ring-2', 'ring-green-500');
+                setTimeout(() => descBox.classList.remove('ring-2', 'ring-green-500'), 3000);
+            }
+
+            // Sync Stats with LocalStorage (Bonus)
+            const reports = JSON.parse(localStorage.getItem('ecoReports')) || [];
+            const resolvedCount = 1240 + reports.filter(r => r.status === 'Resolved').length;
+            document.getElementById('resolved-count').innerText = resolvedCount.toLocaleString();
+        });
+    </script>
 </body>
 </html>
