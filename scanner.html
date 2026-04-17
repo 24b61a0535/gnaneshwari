@@ -13,13 +13,13 @@
     <style>
         .loader {
             border-top-color: #10b981;
-            animation: spinner 1s linear infinite;
+            animation: spinner 0.8s linear infinite;
         }
         @keyframes spinner {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .animate-fade-in { animation: fadeIn 0.5s ease-in; }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
@@ -28,10 +28,10 @@
     <nav class="bg-white border-b p-4 shadow-sm sticky top-0 z-20">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
             <a href="dashboard.html" class="text-slate-600 hover:text-green-600 font-bold flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                <i class="fas fa-arrow-left"></i> Back
             </a>
             <div id="ai-status" class="text-[10px] bg-amber-100 text-amber-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                <i class="fas fa-sync fa-spin mr-1"></i> AI Initializing...
+                <i class="fas fa-sync fa-spin mr-1"></i> Waking up AI...
             </div>
         </div>
     </nav>
@@ -39,7 +39,7 @@
     <main class="max-w-xl mx-auto px-6 py-12">
         <div class="bg-white rounded-3xl shadow-xl p-8 border border-slate-100 text-center">
             <h1 class="text-3xl font-extrabold text-slate-800 mb-2">Smart Waste Scan</h1>
-            <p class="text-slate-500 mb-8 font-medium text-sm">Upload a photo and let our AI categorize the waste.</p>
+            <p class="text-slate-500 mb-8 font-medium text-sm">Upload a photo for instant categorization.</p>
 
             <div id="drop-area" class="border-4 border-dashed border-slate-100 rounded-3xl p-8 hover:border-green-400 hover:bg-green-50 transition-all cursor-pointer group relative">
                 <input type="file" id="file-input" accept="image/*" class="hidden">
@@ -49,14 +49,13 @@
                         <i class="fas fa-camera text-3xl text-green-600"></i>
                     </div>
                     <p class="text-slate-600 font-bold">Tap to Select Photo</p>
-                    <p class="text-slate-400 text-xs mt-2 font-medium italic">Better lighting = Better accuracy</p>
                 </div>
 
                 <img id="image-preview" class="hidden w-full h-72 object-contain rounded-2xl bg-white shadow-sm" crossorigin="anonymous">
             </div>
 
             <div class="mt-10 space-y-4">
-                <button id="scan-btn" disabled class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-green-700 disabled:bg-slate-200 disabled:text-slate-400 transition-all flex items-center justify-center gap-3">
+                <button id="scan-btn" disabled class="w-full bg-slate-200 text-slate-400 py-4 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-3">
                     <i class="fas fa-microchip"></i> Run AI Analysis
                 </button>
                 <button onclick="location.reload()" class="text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-red-500 transition-colors">Reset Camera</button>
@@ -68,16 +67,16 @@
                 <div class="absolute -right-4 -top-4 text-white/10 text-9xl"><i class="fas fa-recycle"></i></div>
                 
                 <div class="relative z-10">
-                    <p class="text-green-300 text-xs font-bold uppercase tracking-widest mb-2">Analysis Complete</p>
-                    <h2 id="detected-name" class="text-4xl font-black capitalize mb-6">Plastic Bottle</h2>
+                    <p class="text-green-300 text-xs font-bold uppercase tracking-widest mb-2">Detected Material</p>
+                    <h2 id="detected-name" class="text-4xl font-black capitalize mb-6">---</h2>
                     
                     <div class="bg-white/10 rounded-2xl p-5 mb-8 backdrop-blur-sm border border-white/10">
                         <div class="flex justify-between text-sm font-bold mb-3">
                             <span class="text-green-200">AI Confidence</span>
-                            <span id="confidence-perc" class="text-white">98%</span>
+                            <span id="confidence-perc" class="text-white">0%</span>
                         </div>
                         <div class="w-full bg-white/20 rounded-full h-3">
-                            <div id="confidence-bar" class="bg-green-400 h-3 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            <div id="confidence-bar" class="bg-green-400 h-3 rounded-full transition-all duration-700" style="width: 0%"></div>
                         </div>
                     </div>
 
@@ -89,10 +88,9 @@
         </div>
     </main>
 
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900/90 backdrop-blur-md z-50 flex flex-col items-center justify-center text-white">
-        <div class="loader rounded-full border-4 border-slate-700 h-20 w-20 mb-6"></div>
-        <h2 class="text-2xl font-bold tracking-tight">AI is Thinking...</h2>
-        <p class="text-slate-400 mt-2 text-sm">Identifying material patterns & pixels</p>
+    <div id="loading-overlay" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-white">
+        <div class="loader rounded-full border-4 border-slate-700 h-16 w-16 mb-4"></div>
+        <h2 class="text-xl font-bold">Scanning...</h2>
     </div>
 
     <script>
@@ -107,16 +105,23 @@
 
         let net = null;
 
-        // 1. Initialize AI Model
+        // 1. Initialize AI with Warm-up for Instant First Scan
         async function initAI() {
             try {
-                // Pre-warm the model
-                net = await mobilenet.load({ version: 2, alpha: 1.0 });
+                // Using alpha 0.75 for 2x faster performance than 1.0 with negligible accuracy loss
+                net = await mobilenet.load({ version: 2, alpha: 0.75 });
+                
+                // Warm-up: Run a zero-tensor through the model to initialize GPU shaders
+                const dummy = tf.zeros([1, 224, 224, 3]);
+                await net.classify(dummy);
+                dummy.dispose();
+
                 statusBadge.innerHTML = '<i class="fas fa-check-circle mr-1"></i> AI Ready';
                 statusBadge.className = 'text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider';
+                console.log("Model warmed up and ready.");
             } catch (err) {
                 console.error("Model Error:", err);
-                statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Offline Mode';
+                statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Error Loading AI';
             }
         }
         initAI();
@@ -131,14 +136,11 @@
                 const reader = new FileReader();
                 reader.onload = event => {
                     preview.src = event.target.result;
-                    
-                    // Crucial: Only enable when image is finished loading in the element
                     preview.onload = () => {
                         preview.classList.remove('hidden');
                         uploadUI.classList.add('hidden');
                         scanBtn.disabled = false;
-                        scanBtn.classList.remove('bg-slate-200');
-                        scanBtn.classList.add('bg-green-600');
+                        scanBtn.className = "w-full bg-green-600 text-white py-4 rounded-2xl font-bold shadow-lg hover:bg-green-700 transition-all flex items-center justify-center gap-3";
                         resultCard.classList.add('hidden');
                     };
                 };
@@ -146,45 +148,52 @@
             }
         };
 
-        // 4. Prediction Logic
+        // 4. Optimized Prediction Logic
         scanBtn.onclick = async () => {
-            if (!net) {
-                alert("The AI model is still loading. Please give it a few more seconds!");
-                return;
-            }
+            if (!net) return;
 
             loadingOverlay.classList.remove('hidden');
+            
+            // Small requestAnimationFrame ensures the loader displays before the CPU works
+            requestAnimationFrame(async () => {
+                try {
+                    // Start timer for console debugging
+                    const start = performance.now();
+                    
+                    const results = await net.classify(preview);
+                    
+                    const end = performance.now();
+                    console.log(`Inference took ${Math.round(end - start)}ms`);
 
-            try {
-                // Analyze image
-                const results = await net.classify(preview);
-                
-                // Simulate a delay so the user feels the "Scan" (Better UX)
-                setTimeout(() => {
                     const topResult = results[0].className.split(',')[0];
                     const confidence = Math.round(results[0].probability * 100);
 
-                    // Update UI
+                    // Immediate UI Update
                     document.getElementById('detected-name').innerText = topResult;
                     document.getElementById('confidence-perc').innerText = confidence + "%";
-                    document.getElementById('confidence-bar').style.width = confidence + "%";
                     
                     loadingOverlay.classList.add('hidden');
                     resultCard.classList.remove('hidden');
+                    
+                    // Trigger bar animation after a tiny delay for visual effect
+                    setTimeout(() => {
+                        document.getElementById('confidence-bar').style.width = confidence + "%";
+                    }, 100);
+
                     resultCard.scrollIntoView({ behavior: 'smooth' });
 
-                    // Final Action: Send to Form
                     document.getElementById('use-result-btn').onclick = () => {
                         window.location.href = `index.html?wasteType=${encodeURIComponent(topResult)}#report-form`;
                     };
-                }, 1500);
 
-            } catch (error) {
-                console.error(error);
-                loadingOverlay.classList.add('hidden');
-                alert("AI Scan failed. Please try a different image.");
-            }
+                } catch (error) {
+                    console.error(error);
+                    loadingOverlay.classList.add('hidden');
+                    alert("Scan failed. Try a clearer photo.");
+                }
+            });
         };
     </script>
 </body>
 </html>
+
