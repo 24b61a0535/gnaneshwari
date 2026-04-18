@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Scanner | EcoReport</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/dist/css/all.min.css">
     
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
@@ -105,20 +107,15 @@
 
         let net = null;
 
-        // 1. Initialize AI with Warm-up for Instant First Scan
         async function initAI() {
             try {
-                // Using alpha 0.75 for 2x faster performance than 1.0 with negligible accuracy loss
                 net = await mobilenet.load({ version: 2, alpha: 0.75 });
-                
-                // Warm-up: Run a zero-tensor through the model to initialize GPU shaders
                 const dummy = tf.zeros([1, 224, 224, 3]);
                 await net.classify(dummy);
                 dummy.dispose();
 
                 statusBadge.innerHTML = '<i class="fas fa-check-circle mr-1"></i> AI Ready';
                 statusBadge.className = 'text-[10px] bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider';
-                console.log("Model warmed up and ready.");
             } catch (err) {
                 console.error("Model Error:", err);
                 statusBadge.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Error Loading AI';
@@ -126,10 +123,8 @@
         }
         initAI();
 
-        // 2. Open File Selection
         dropArea.onclick = () => fileInput.click();
 
-        // 3. Handle File Choice
         fileInput.onchange = e => {
             const file = e.target.files[0];
             if (file) {
@@ -148,34 +143,22 @@
             }
         };
 
-        // 4. Optimized Prediction Logic
         scanBtn.onclick = async () => {
             if (!net) return;
-
             loadingOverlay.classList.remove('hidden');
             
-            // Small requestAnimationFrame ensures the loader displays before the CPU works
             requestAnimationFrame(async () => {
                 try {
-                    // Start timer for console debugging
-                    const start = performance.now();
-                    
                     const results = await net.classify(preview);
-                    
-                    const end = performance.now();
-                    console.log(`Inference took ${Math.round(end - start)}ms`);
-
                     const topResult = results[0].className.split(',')[0];
                     const confidence = Math.round(results[0].probability * 100);
 
-                    // Immediate UI Update
                     document.getElementById('detected-name').innerText = topResult;
                     document.getElementById('confidence-perc').innerText = confidence + "%";
                     
                     loadingOverlay.classList.add('hidden');
                     resultCard.classList.remove('hidden');
                     
-                    // Trigger bar animation after a tiny delay for visual effect
                     setTimeout(() => {
                         document.getElementById('confidence-bar').style.width = confidence + "%";
                     }, 100);
@@ -196,4 +179,3 @@
     </script>
 </body>
 </html>
-
